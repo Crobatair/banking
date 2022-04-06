@@ -6,8 +6,9 @@ import (
 )
 
 func StartApp() {
-	http.HandleFunc("/customers", getAllCustomers)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/customers", getAllCustomers)
 	log.Fatal(
-		http.ListenAndServe(":8080", nil),
+		http.ListenAndServe(":8080", mux),
 	)
 }
