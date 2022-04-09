@@ -3,8 +3,8 @@ package domain
 import (
 	"database/sql"
 	"github.com/crobatair/banking/errs"
+	"github.com/crobatair/banking/logger"
 	_ "github.com/go-sql-driver/mysql"
-	"log"
 	"net/url"
 	"time"
 )
@@ -22,7 +22,7 @@ func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
 			return nil, errs.NewNotFoundError("customer not found")
 		}
 
-		log.Println("Error scanning the filtered row" + err.Error())
+		logger.Error("Error scanning the filtered row" + err.Error())
 		return nil, errs.NewUnexpectedError("Unexpected Database Error")
 	}
 
@@ -44,6 +44,7 @@ func (d CustomerRepositoryDb) FindAll(f url.Values) ([]Customer, *errs.AppError)
 		var c Customer
 		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
 		if err != nil {
+			logger.Error("Error scanning the filtered row" + err.Error())
 			return nil, errs.NewUnexpectedError("Error while scanning customer table" + err.Error())
 		}
 		customers = append(customers, c)
