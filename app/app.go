@@ -16,7 +16,9 @@ func StartApp() {
 	// The **CustomerService** interface is used to interact with the **CustomerRepositoryStub**
 	// The **CustomerRepositoryStub**, it's an abstraction of a remote service / database, but assumes that a default
 	// implementation is available and can provide the data
-	ch := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryStub())}
+	//ch := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryStub())}
+
+	ch := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryDb())}
 
 	router.HandleFunc("/api/customers", ch.findAllCustomers).Methods(http.MethodGet)
 
