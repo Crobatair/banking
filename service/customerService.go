@@ -16,6 +16,7 @@ import "github.com/crobatair/banking/domain"
 //
 type CustomerService interface {
 	FindAll() ([]domain.Customer, error)
+	FindCustomerById(string) (*domain.Customer, error)
 }
 
 // DefaultCustomerService This struct, will define a repository for a CustomerRepository
@@ -29,6 +30,10 @@ type DefaultCustomerService struct {
 // This allows, that any impl of CustomerService  to be bind to a DefaultCustomerService
 func (s DefaultCustomerService) FindAll() ([]domain.Customer, error) {
 	return s.repo.FindAll()
+}
+
+func (s DefaultCustomerService) FindCustomerById(id string) (*domain.Customer, error) {
+	return s.repo.FindById(id)
 }
 
 // NewCustomerService This function, will return a new instance of DefaultCustomerService

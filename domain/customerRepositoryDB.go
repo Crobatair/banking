@@ -11,8 +11,19 @@ type CustomerRepositoryDb struct {
 	client *sql.DB
 }
 
-func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
+func (d CustomerRepositoryDb) FindById(id string) (*Customer, error) {
+	var c Customer
+	row := d.client.QueryRow("SELECT * FROM customers WHERE customer_id = ?", id)
+	err := row.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
+	if err != nil {
+		log.Println("Error scanning the filtered row" + err.Error())
+		return nil, err
+	}
 
+	return &c, nil
+}
+
+func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
 	findAllSql := "SELECT * from customers"
 	rows, err := d.client.Query(findAllSql)
 	if err != nil {

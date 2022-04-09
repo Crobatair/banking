@@ -2,8 +2,10 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/crobatair/banking/domain"
 	"github.com/crobatair/banking/service"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
@@ -19,6 +21,21 @@ func (ch *CustomerHandlers) findAllCustomers(w http.ResponseWriter, r *http.Requ
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(customers)
+}
+
+func (ch *CustomerHandlers) getCustomer(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["customer_id"]
+	customer, err := ch.service.FindCustomerById(id)
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+		w.WriteHeader(http.StatusNotFound)
+
+	} else {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(customer)
+	}
 }
 
 func findCustomer(w http.ResponseWriter, r *http.Request) {

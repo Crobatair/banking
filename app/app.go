@@ -21,9 +21,9 @@ func StartApp() {
 	ch := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryDb())}
 
 	router.HandleFunc("/api/customers", ch.findAllCustomers).Methods(http.MethodGet)
+	router.HandleFunc("/api/customers/{customer_id:[0-9]+}", ch.getCustomer).Methods(http.MethodGet)
 
 	router.HandleFunc("/customers", createCustomer).Methods(http.MethodPost)
-	router.HandleFunc("/customers/{customer_id:[0-9]+}", findCustomer).Methods(http.MethodGet)
 	log.Fatal(
 		http.ListenAndServe(":8080", router),
 	)
