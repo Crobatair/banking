@@ -2,6 +2,7 @@ package domain
 
 import (
 	"database/sql"
+	"github.com/crobatair/banking/errs"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
 	"time"
@@ -11,13 +12,17 @@ type CustomerRepositoryDb struct {
 	client *sql.DB
 }
 
-func (d CustomerRepositoryDb) FindById(id string) (*Customer, error) {
+func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
 	var c Customer
 	row := d.client.QueryRow("SELECT * FROM customers WHERE customer_id = ?", id)
 	err := row.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("customer not found")
+		}
+
 		log.Println("Error scanning the filtered row" + err.Error())
-		return nil, err
+		return nil, errs.NewUnexpectedError("Unexpected Database Error")
 	}
 
 	return &c, nil

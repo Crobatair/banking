@@ -1,6 +1,9 @@
 package service
 
-import "github.com/crobatair/banking/domain"
+import (
+	"github.com/crobatair/banking/domain"
+	"github.com/crobatair/banking/errs"
+)
 
 // CustomerService Primary Interface, Any service must implement all methods to gain
 // The trait of CustomerService:
@@ -16,7 +19,7 @@ import "github.com/crobatair/banking/domain"
 //
 type CustomerService interface {
 	FindAll() ([]domain.Customer, error)
-	FindCustomerById(string) (*domain.Customer, error)
+	FindCustomerById(string) (*domain.Customer, *errs.AppError)
 }
 
 // DefaultCustomerService This struct, will define a repository for a CustomerRepository
@@ -32,7 +35,7 @@ func (s DefaultCustomerService) FindAll() ([]domain.Customer, error) {
 	return s.repo.FindAll()
 }
 
-func (s DefaultCustomerService) FindCustomerById(id string) (*domain.Customer, error) {
+func (s DefaultCustomerService) FindCustomerById(id string) (*domain.Customer, *errs.AppError) {
 	return s.repo.FindById(id)
 }
 
