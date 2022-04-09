@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/crobatair/banking/domain"
 	"github.com/crobatair/banking/service"
 	"github.com/gorilla/mux"
@@ -15,12 +14,15 @@ type CustomerHandlers struct {
 
 // This is a receiver function, it will bind:
 // - findAllCustomers  -> to an instantiated CustomerHandlers in app.go
-// This bind, provides a service.FindAll() that is defined on the Stub
+// This bind, provides a service.FindAllCustomers() that is defined on the Stub
 func (ch *CustomerHandlers) findAllCustomers(w http.ResponseWriter, r *http.Request) {
-	customers, _ := ch.service.FindAll()
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(customers)
+	filters := r.URL.Query()
+	customers, err := ch.service.FindAllCustomers(filters)
+	if err != nil {
+		writeResponse(w, err.Code, err.AsMessage())
+	} else {
+		writeResponse(w, http.StatusOK, customers)
+	}
 }
 
 func (ch *CustomerHandlers) getCustomer(w http.ResponseWriter, r *http.Request) {
@@ -28,13 +30,17 @@ func (ch *CustomerHandlers) getCustomer(w http.ResponseWriter, r *http.Request) 
 	id := vars["customer_id"]
 	customer, err := ch.service.FindCustomerById(id)
 	if err != nil {
-		fmt.Fprintf(w, err.Message)
-		w.WriteHeader(err.Code)
-
+		writeResponse(w, err.Code, err.AsMessage())
 	} else {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(customer)
+		writeResponse(w, http.StatusOK, customer)
+	}
+}
+
+func writeResponse(w http.ResponseWriter, code int, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		panic(err)
 	}
 }
 

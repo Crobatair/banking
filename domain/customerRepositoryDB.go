@@ -5,6 +5,7 @@ import (
 	"github.com/crobatair/banking/errs"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
+	"net/url"
 	"time"
 )
 
@@ -28,26 +29,45 @@ func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
 	return &c, nil
 }
 
-func (d CustomerRepositoryDb) FindAll() ([]Customer, error) {
-	findAllSql := "SELECT * from customers"
-	rows, err := d.client.Query(findAllSql)
-	if err != nil {
-		log.Panicln("Error while querying customer table" + err.Error())
-		return nil, err
+func (d CustomerRepositoryDb) FindAll(f url.Values) ([]Customer, *errs.AppError) {
+	findAllSql, queryErr := constructSqlFindAllQuery(f)
+	if queryErr != nil {
+		return nil, queryErr
 	}
 
+	rows, err := d.client.Query(findAllSql)
+	if err != nil {
+		return nil, errs.NewUnexpectedError("Unexpected Database Error")
+	}
 	customers := make([]Customer, 0)
 	for rows.Next() {
 		var c Customer
 		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
 		if err != nil {
-			log.Panicln("Error while scanning customer table" + err.Error())
-			return nil, err
+			return nil, errs.NewUnexpectedError("Error while scanning customer table" + err.Error())
 		}
 		customers = append(customers, c)
 	}
 
 	return customers, nil
+}
+
+func constructSqlFindAllQuery(f url.Values) (string, *errs.AppError) {
+	query := "SELECT * from customers"
+	if f.Get("status") != "" {
+		status := f.Get("status")
+		statusParam := "0"
+		if status == "active" {
+			statusParam = "1"
+		} else if status == "inactive" {
+			statusParam = "0"
+		} else {
+			return query, errs.NewBadRequestError("Invalid value for filter status")
+		}
+		query += " WHERE status = " + statusParam
+
+	}
+	return query, nil
 }
 
 func NewCustomerRepositoryDb() CustomerRepository {

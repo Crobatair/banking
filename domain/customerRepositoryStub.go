@@ -1,5 +1,7 @@
 package domain
 
+import "net/url"
+
 // CustomerRepositoryStub is a stub for the customer repository
 // Provides a struct, to hold all customers
 type CustomerRepositoryStub struct {
@@ -8,7 +10,7 @@ type CustomerRepositoryStub struct {
 
 // FindAll
 // It's an Impl of CustomerRepository interface because implements a FindAll method and returns a []Customer, error.
-func (s CustomerRepositoryStub) FindAll() ([]Customer, error) {
+func (s CustomerRepositoryStub) FindAll(_ url.Values) ([]Customer, error) {
 	return s.customers, nil
 }
 

@@ -1,6 +1,9 @@
 package domain
 
-import "github.com/crobatair/banking/errs"
+import (
+	"github.com/crobatair/banking/errs"
+	"net/url"
+)
 
 type Customer struct {
 	Id          string `json:"id"`
@@ -12,6 +15,6 @@ type Customer struct {
 }
 
 type CustomerRepository interface {
-	FindAll() ([]Customer, error)
+	FindAll(url.Values) ([]Customer, *errs.AppError)
 	FindById(string) (*Customer, *errs.AppError)
 }

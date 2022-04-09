@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/crobatair/banking/domain"
 	"github.com/crobatair/banking/errs"
+	"net/url"
 )
 
 // CustomerService Primary Interface, Any service must implement all methods to gain
@@ -18,7 +19,7 @@ import (
 //			SomeService, to be an impl of CustomerService, because it implements all methods
 //
 type CustomerService interface {
-	FindAll() ([]domain.Customer, error)
+	FindAllCustomers(url.Values) ([]domain.Customer, *errs.AppError)
 	FindCustomerById(string) (*domain.Customer, *errs.AppError)
 }
 
@@ -28,11 +29,11 @@ type DefaultCustomerService struct {
 	repo domain.CustomerRepository
 }
 
-// FindAll
-// This method, allos DefaultCustomerService to be an impl of CustomerService
+// FindAllCustomers This method, will return all customers
+// This method, all DefaultCustomerService to be an impl of CustomerService
 // This allows, that any impl of CustomerService  to be bind to a DefaultCustomerService
-func (s DefaultCustomerService) FindAll() ([]domain.Customer, error) {
-	return s.repo.FindAll()
+func (s DefaultCustomerService) FindAllCustomers(f url.Values) ([]domain.Customer, *errs.AppError) {
+	return s.repo.FindAll(f)
 }
 
 func (s DefaultCustomerService) FindCustomerById(id string) (*domain.Customer, *errs.AppError) {
