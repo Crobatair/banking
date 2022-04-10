@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/crobatair/banking/domain"
+	"github.com/crobatair/banking/dto"
 	"github.com/crobatair/banking/errs"
 	"net/url"
 )
@@ -20,7 +21,7 @@ import (
 //
 type CustomerService interface {
 	FindAllCustomers(url.Values) ([]domain.Customer, *errs.AppError)
-	FindCustomerById(string) (*domain.Customer, *errs.AppError)
+	FindCustomerById(string) (*dto.CustomerResponse, *errs.AppError)
 }
 
 // DefaultCustomerService This struct, will define a repository for a CustomerRepository
@@ -36,8 +37,14 @@ func (s DefaultCustomerService) FindAllCustomers(f url.Values) ([]domain.Custome
 	return s.repo.FindAll(f)
 }
 
-func (s DefaultCustomerService) FindCustomerById(id string) (*domain.Customer, *errs.AppError) {
-	return s.repo.FindById(id)
+func (s DefaultCustomerService) FindCustomerById(id string) (*dto.CustomerResponse, *errs.AppError) {
+	c, err := s.repo.FindById(id)
+	if err != nil {
+		return nil, err
+	}
+	r := c.ToDto()
+
+	return &r, nil
 }
 
 // NewCustomerService This function, will return a new instance of DefaultCustomerService
