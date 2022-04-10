@@ -23,3 +23,7 @@ func NewUnexpectedError(message string) *AppError {
 func NewBadRequestError(message string) *AppError {
 	return &AppError{http.StatusBadRequest, message}
 }
+
+func NewValidationError(message string) *AppError {
+	return &AppError{http.StatusUnprocessableEntity, message}
+}

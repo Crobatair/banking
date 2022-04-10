@@ -2,14 +2,11 @@ package domain
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/crobatair/banking/errs"
 	"github.com/crobatair/banking/logger"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"net/url"
-	"os"
-	"time"
 )
 
 type CustomerRepositoryDb struct {
@@ -62,21 +59,6 @@ func constructSqlFindAllQuery(f url.Values) (string, *errs.AppError) {
 	return query, nil
 }
 
-func NewCustomerRepositoryDb() CustomerRepository {
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_NAME")
-	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
-	client, err := sqlx.Open("mysql", dataSource)
-	if err != nil {
-		panic(err)
-	}
-
-	client.SetConnMaxLifetime(time.Minute * 3)
-	client.SetMaxOpenConns(10)
-	client.SetMaxIdleConns(10)
-
+func NewCustomerRepositoryDb(client *sqlx.DB) CustomerRepository {
 	return &CustomerRepositoryDb{client}
 }
