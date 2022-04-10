@@ -1,14 +1,29 @@
 package app
 
 import (
+	"fmt"
 	"github.com/crobatair/banking/domain"
 	"github.com/crobatair/banking/service"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"os"
 )
 
+func sanityCheck() {
+	if os.Getenv("SERVER_ADDRESS") == "" ||
+		os.Getenv("SERVER_PORT") == "" ||
+		os.Getenv("DB_HOST") == "" ||
+		os.Getenv("DB_PORT") == "" ||
+		os.Getenv("DB_USER") == "" ||
+		os.Getenv("DB_PASSWORD") == "" ||
+		os.Getenv("DB_NAME") == "" {
+		log.Fatal("A defined environment variable is missing")
+	}
+}
+
 func StartApp() {
+	sanityCheck()
 	router := mux.NewRouter()
 
 	// Instance a new handler, that will take the **CustomerRepositoryStub** and build a new **CustomerService**
@@ -22,9 +37,12 @@ func StartApp() {
 
 	router.HandleFunc("/api/customers", ch.findAllCustomers).Methods(http.MethodGet)
 	router.HandleFunc("/api/customers/{customer_id:[0-9]+}", ch.getCustomer).Methods(http.MethodGet)
-
 	router.HandleFunc("/customers", createCustomer).Methods(http.MethodPost)
+
+	s := os.Getenv("SERVER_ADDRESS")
+	p := os.Getenv("SERVER_PORT")
+
 	log.Fatal(
-		http.ListenAndServe(":8080", router),
+		http.ListenAndServe(fmt.Sprintf("%s:%s", s, p), router),
 	)
 }

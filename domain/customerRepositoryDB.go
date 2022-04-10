@@ -2,11 +2,13 @@ package domain
 
 import (
 	"database/sql"
+	"fmt"
 	"github.com/crobatair/banking/errs"
 	"github.com/crobatair/banking/logger"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"net/url"
+	"os"
 	"time"
 )
 
@@ -61,7 +63,13 @@ func constructSqlFindAllQuery(f url.Values) (string, *errs.AppError) {
 }
 
 func NewCustomerRepositoryDb() CustomerRepository {
-	client, err := sqlx.Open("mysql", "root:codecamp@tcp(localhost:3306)/banking")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+	dataSource := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPassword, dbHost, dbPort, dbName)
+	client, err := sqlx.Open("mysql", dataSource)
 	if err != nil {
 		panic(err)
 	}
