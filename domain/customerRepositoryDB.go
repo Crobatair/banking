@@ -5,51 +5,40 @@ import (
 	"github.com/crobatair/banking/errs"
 	"github.com/crobatair/banking/logger"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/jmoiron/sqlx"
 	"net/url"
 	"time"
 )
 
 type CustomerRepositoryDb struct {
-	client *sql.DB
+	client *sqlx.DB
 }
 
 func (d CustomerRepositoryDb) FindById(id string) (*Customer, *errs.AppError) {
 	var c Customer
-	row := d.client.QueryRow("SELECT * FROM customers WHERE customer_id = ?", id)
-	err := row.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
+	err := d.client.Get(&c, "SELECT * FROM customers WHERE customer_id = ?", id)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errs.NewNotFoundError("customer not found")
 		}
-
 		logger.Error("Error scanning the filtered row" + err.Error())
 		return nil, errs.NewUnexpectedError("Unexpected Database Error")
 	}
-
 	return &c, nil
 }
 
 func (d CustomerRepositoryDb) FindAll(f url.Values) ([]Customer, *errs.AppError) {
+	customers := make([]Customer, 0)
 	findAllSql, queryErr := constructSqlFindAllQuery(f)
 	if queryErr != nil {
 		return nil, queryErr
 	}
 
-	rows, err := d.client.Query(findAllSql)
+	err := d.client.Select(&customers, findAllSql)
 	if err != nil {
+		logger.Error("Error scanning the filtered row" + err.Error())
 		return nil, errs.NewUnexpectedError("Unexpected Database Error")
 	}
-	customers := make([]Customer, 0)
-	for rows.Next() {
-		var c Customer
-		err := rows.Scan(&c.Id, &c.Name, &c.City, &c.Zipcode, &c.DateOfBirth, &c.Status)
-		if err != nil {
-			logger.Error("Error scanning the filtered row" + err.Error())
-			return nil, errs.NewUnexpectedError("Error while scanning customer table" + err.Error())
-		}
-		customers = append(customers, c)
-	}
-
 	return customers, nil
 }
 
@@ -72,7 +61,7 @@ func constructSqlFindAllQuery(f url.Values) (string, *errs.AppError) {
 }
 
 func NewCustomerRepositoryDb() CustomerRepository {
-	client, err := sql.Open("mysql", "root:codecamp@tcp(localhost:3306)/banking")
+	client, err := sqlx.Open("mysql", "root:codecamp@tcp(localhost:3306)/banking")
 	if err != nil {
 		panic(err)
 	}

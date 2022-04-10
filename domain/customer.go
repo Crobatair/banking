@@ -6,11 +6,11 @@ import (
 )
 
 type Customer struct {
-	Id          string `json:"id"`
+	Id          string `db:"customer_id" json:"id"`
 	Name        string `json:"first_name"`
 	City        string `json:"city"`
 	Zipcode     string `json:"zip_code"`
-	DateOfBirth string `json:"date_of_birth"`
+	DateOfBirth string `db:"date_of_birth" json:"date_of_birth"`
 	Status      string `json:"status"`
 }
 
