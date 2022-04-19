@@ -6,6 +6,7 @@ import (
 	"github.com/crobatair/banking/logger"
 	"github.com/jmoiron/sqlx"
 	"strconv"
+	"time"
 )
 
 type TransactionRepositoryDb struct {
@@ -34,6 +35,8 @@ func (d TransactionRepositoryDb) SaveTransaction(r *dto.TransactionRequest) (*dt
 	}
 
 	transaction.TransactionId = strconv.FormatInt(id, 10)
+	transaction.TransactionType = r.TransactionType
+	transaction.TransactionDate = time.Now().Format("2006-01-02 15:04:05")
 
 	queryUpdate := "UPDATE accounts SET amount = amount + ? WHERE account_id = ?"
 	_, err = tx.Exec(queryUpdate, r.Amount, r.Account)
