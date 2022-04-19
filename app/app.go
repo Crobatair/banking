@@ -35,12 +35,22 @@ func StartApp() {
 	// The **CustomerRepositoryStub**, it's an abstraction of a remote service / database, but assumes that a default
 	// implementation is available and can provide the data
 	//ch := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryStub())}
-	ch := CustomerHandlers{service.NewCustomerService(domain.NewCustomerRepositoryDb(dbClient))}
-	ah := AccountHandler{service.NewAccountRepository(domain.NewAccountRepositoryDb(dbClient))}
+	customerService := service.NewCustomerService(domain.NewCustomerRepositoryDb(dbClient))
+	accountService := service.NewAccountRepository(domain.NewAccountRepositoryDb(dbClient))
+	ts := domain.NewTransactionRepositoryDb(dbClient)
+	transactionService := service.NewTransactionService(
+		ts,
+		&accountService,
+	)
+	ch := CustomerHandlers{customerService}
+	ah := AccountHandler{accountService}
+	th := TransactionHandler{transactionService}
 
 	router.HandleFunc("/api/customers", ch.findAllCustomers).Methods(http.MethodGet)
 	router.HandleFunc("/api/customers/{customer_id:[0-9]+}", ch.getCustomer).Methods(http.MethodGet)
 	router.HandleFunc("/api/customers/{customer_id:[0-9]+}/account", ah.NewAccount).Methods(http.MethodPost)
+
+	router.HandleFunc("/api/customers/{customer_id:[0-9]+}/account/{account_id:[0-9]+}", th.MakeTransaction).Methods(http.MethodPost)
 
 	router.HandleFunc("/customers", createCustomer).Methods(http.MethodPost)
 

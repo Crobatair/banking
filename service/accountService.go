@@ -9,6 +9,8 @@ import (
 
 type AccountService interface {
 	NewAccount(dto.NewAccountRequest) (*dto.NewAccountResponse, *errs.AppError)
+	FindAccount(string) (*domain.Account, *errs.AppError)
+	UpdateAccountBalance(request *dto.TransactionRequest) *errs.AppError
 }
 
 type DefaultAccountService struct {
@@ -34,6 +36,18 @@ func (d DefaultAccountService) NewAccount(req dto.NewAccountRequest) (*dto.NewAc
 	}
 	response := newAccount.ToNewAccountResponse()
 	return &response, nil
+}
+
+func (d DefaultAccountService) FindAccount(a string) (*domain.Account, *errs.AppError) {
+	account, err := d.repo.FindByAccountId(a)
+	if err != nil {
+		return nil, err
+	}
+	return account, nil
+}
+
+func (d DefaultAccountService) UpdateAccountBalance(request *dto.TransactionRequest) *errs.AppError {
+	return d.repo.UpdateBalance(request.Account, request.Amount)
 }
 
 func NewAccountRepository(repository domain.AccountRepository) DefaultAccountService {
