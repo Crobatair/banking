@@ -13,9 +13,15 @@ type TransactionRepositoryDb struct {
 }
 
 func (d TransactionRepositoryDb) SaveTransaction(r *dto.TransactionRequest) (*dto.TransactionResponse, *errs.AppError) {
+	tx, err := d.client.Beginx()
+	if err != nil {
+		logger.Error("Error while creating transaction" + err.Error())
+		return nil, errs.NewUnexpectedError("Error while creating transaction")
+	}
+
 	var transaction dto.TransactionResponse
 	sqlTransaction := "INSERT INTO transactions (account_id, amount, transaction_type) VALUES (?, ?, ?)"
-	res, err := d.client.Exec(sqlTransaction, r.Account, r.Amount, r.TransactionType)
+	res, err := tx.Exec(sqlTransaction, r.Account, r.Amount, r.TransactionType)
 	if err != nil {
 		logger.Error("Error while saving transaction" + err.Error())
 		return nil, errs.NewUnexpectedError("Error while saving transaction" + err.Error())
@@ -29,17 +35,22 @@ func (d TransactionRepositoryDb) SaveTransaction(r *dto.TransactionRequest) (*dt
 
 	transaction.TransactionId = strconv.FormatInt(id, 10)
 
-	return &transaction, nil
-}
-
-func (d TransactionRepositoryDb) RevertTransaction(transactionId string) *errs.AppError {
-	sqlDelete := "DELETE FROM transactions WHERE transaction_id = ?"
-	_, err := d.client.Exec(sqlDelete, transactionId)
+	queryUpdate := "UPDATE accounts SET amount = amount + ? WHERE account_id = ?"
+	_, err = tx.Exec(queryUpdate, r.Amount, r.Account)
 	if err != nil {
-		logger.Error("Error while reverting transaction" + err.Error())
-		return errs.NewUnexpectedError("Error while reverting transaction" + err.Error())
+		logger.Error("Error while updating account" + err.Error())
+		tx.Rollback()
+
+		return nil, errs.NewUnexpectedError("Error while updating account" + err.Error())
 	}
-	return nil
+
+	err = tx.Commit()
+	if err != nil {
+		logger.Error("Error while committing transaction" + err.Error())
+		return nil, errs.NewUnexpectedError("Error while committing transaction")
+	}
+
+	return &transaction, nil
 }
 
 func NewTransactionRepositoryDb(client *sqlx.DB) *TransactionRepositoryDb {

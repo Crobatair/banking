@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/crobatair/banking/dto"
 	"github.com/crobatair/banking/service"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
@@ -12,6 +13,8 @@ type TransactionHandler struct {
 }
 
 func (h TransactionHandler) MakeTransaction(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	accountId := vars["account_id"]
 	var req dto.TransactionRequestBody
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -19,7 +22,7 @@ func (h TransactionHandler) MakeTransaction(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	res, appErr := h.service.MakeTransaction(&req)
+	res, appErr := h.service.MakeTransaction(&req, accountId)
 	if appErr != nil {
 		writeResponse(w, appErr.Code, appErr.Message)
 		return

@@ -8,7 +8,6 @@ var TRANSACTION_WITHDRAW string = "withdraw"
 var TRANSACTION_DEPOSIT string = "deposit"
 
 type TransactionRequestBody struct {
-	AccountId       string  `json:"account_id"`
 	TransactionType string  `json:"transaction_type"`
 	Amount          float64 `json:"amount"`
 }

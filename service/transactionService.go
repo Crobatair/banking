@@ -7,7 +7,7 @@ import (
 )
 
 type TransactionService interface {
-	MakeTransaction(*dto.TransactionRequestBody) (*dto.TransactionResponse, *errs.AppError)
+	MakeTransaction(*dto.TransactionRequestBody, string) (*dto.TransactionResponse, *errs.AppError)
 	Withdraw(*dto.TransactionRequest) (*dto.TransactionResponse, *errs.AppError)
 	Deposit(*dto.TransactionRequest) (*dto.TransactionResponse, *errs.AppError)
 }
@@ -26,8 +26,8 @@ func NewTransactionService(repo *domain.TransactionRepositoryDb, accountService 
 
 // Implementations
 
-func (d DefaultTransactionService) MakeTransaction(r *dto.TransactionRequestBody) (*dto.TransactionResponse, *errs.AppError) {
-	account, err := d.accountService.FindAccount(r.AccountId)
+func (d DefaultTransactionService) MakeTransaction(r *dto.TransactionRequestBody, accountId string) (*dto.TransactionResponse, *errs.AppError) {
+	account, err := d.accountService.FindAccount(accountId)
 	if err != nil {
 		return nil, err
 	}
@@ -57,12 +57,6 @@ func (d DefaultTransactionService) Deposit(r *dto.TransactionRequest) (*dto.Tran
 		return nil, err
 	}
 
-	err = d.accountService.UpdateAccountBalance(r)
-	if err != nil {
-		_ = d.repo.RevertTransaction(result.TransactionId)
-		return nil, err
-	}
-
 	account, _ := d.accountService.FindAccount(r.Account)
 	result.Balance = account.AmountAsString()
 	return result, nil
@@ -74,15 +68,10 @@ func (d DefaultTransactionService) Withdraw(r *dto.TransactionRequest) (*dto.Tra
 		return nil, errs.NewBadRequestError("Insufficient funds")
 	}
 
+	r.Amount *= -1 // make it negative for withdraw
+
 	result, err := d.repo.SaveTransaction(r)
 	if err != nil {
-		return nil, err
-	}
-
-	r.Amount *= -1 // make it negative for withdraw
-	err = d.accountService.UpdateAccountBalance(r)
-	if err != nil {
-		_ = d.repo.RevertTransaction(result.TransactionId)
 		return nil, err
 	}
 

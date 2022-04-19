@@ -11,17 +11,6 @@ type AccountRepositoryDb struct {
 	client *sqlx.DB
 }
 
-func (d AccountRepositoryDb) UpdateBalance(accountId string, amount float64) *errs.AppError {
-	query := "UPDATE accounts SET amount = amount + ? WHERE account_id = ?"
-	_, err := d.client.Exec(query, amount, accountId)
-	if err != nil {
-		logger.Error("Error updating balance" + err.Error())
-		return errs.NewUnexpectedError("Error updating balance" + err.Error() + ", the transaction will be reverted")
-	}
-
-	return nil
-}
-
 func (d AccountRepositoryDb) FindByAccountId(s string) (*Account, *errs.AppError) {
 	var a Account
 	sqlFind := `SELECT * FROM accounts WHERE account_id = ?`

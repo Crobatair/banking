@@ -28,5 +28,4 @@ func (a Account) AmountAsString() string {
 type AccountRepository interface {
 	Save(Account) (*Account, *errs.AppError)
 	FindByAccountId(string) (*Account, *errs.AppError)
-	UpdateBalance(string, float64) *errs.AppError
 }
